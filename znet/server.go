@@ -2,6 +2,7 @@ package znet
 
 import (
 	"fmt"
+	"github.com/byteYuFan/zinx/utils"
 	"github.com/byteYuFan/zinx/zinterfance"
 	"net"
 )
@@ -16,11 +17,22 @@ type Server struct {
 	IP string
 	// Port 服务器监听的端口号
 	Port int
+	// 当前的Server添加一个router
+	Router zinterfance.IRouter
 }
 
 // Start 实现IServer接口
 func (s *Server) Start() {
-	fmt.Printf("[Start] Server Listenner at IP:%s,Port %d is  starting\n", s.IP, s.Port)
+	fmt.Printf("[Zinx] Server Name :%s, Listener at IP :%s, Port:%d is starting\n",
+		utils.GlobalObject.Name,
+		utils.GlobalObject.Host,
+		utils.GlobalObject.TcpPort,
+	)
+	fmt.Printf("[Zinx] Version %s ,MaxConn:%d,MaxPackageSize:%d\n",
+		utils.GlobalObject.Version,
+		utils.GlobalObject.MaxConn,
+		utils.GlobalObject.MaxPackageSize,
+	)
 	go func() {
 		// 获取一个TCP Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
@@ -34,26 +46,18 @@ func (s *Server) Start() {
 			return
 		}
 		fmt.Println("start zinx server successfully", s.Name, "success,Listening...")
+		var cid uint32
+
 		for {
 			conn, err := listener.AcceptTCP()
 			if err != nil {
 				fmt.Println("Accept err", err)
 				continue
 			}
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					count, err := conn.Read(buf)
-					if err != nil {
-						fmt.Println("receive buf err", err)
-						continue
-					}
-					if _, err := conn.Write(buf[:count]); err != nil {
-						fmt.Println("write back buf err", err)
-						continue
-					}
-				}
-			}()
+			// 将处理新连接业务的方法和Conn进行绑定，得到连接模块
+			dialConn := NewConnection(conn, cid, s.Router)
+			cid++
+			go dialConn.Start()
 		}
 
 	}()
@@ -71,13 +75,20 @@ func (s *Server) Server() {
 	select {}
 }
 
+// AddRouter 实现增加AddRouter接口
+func (s *Server) AddRouter(router zinterfance.IRouter) {
+	s.Router = router
+	fmt.Println("Add Router Successfully!!")
+}
+
 // NewServer 提供一个初始化Server模块的方法
 func NewServer(name string) zinterfance.IServer {
 	return &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.TcpPort,
+		Router:    nil,
 	}
 
 }
