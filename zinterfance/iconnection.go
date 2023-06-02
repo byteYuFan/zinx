@@ -1,6 +1,8 @@
 package zinterfance
 
-import "net"
+import (
+	"net"
+)
 
 // IConnection 连接层抽象接口
 type IConnection interface {
@@ -14,8 +16,14 @@ type IConnection interface {
 	GetConnID() uint32
 	// RemoteAddr 获取远程客户端的TCP 状态 ip port
 	RemoteAddr() net.Addr
-	// Send 发送数据
-	Send(data []byte) error
+	// SendMsg 发送数据
+	SendMsg(id uint32, data []byte) error
+	// SetProperty 设置连接属性
+	SetProperty(key string, value any)
+	// GetProperty 获取连接属性
+	GetProperty(key string) (any, error)
+	// RemoverProperty 移除连接属性
+	RemoverProperty(key string)
 }
 
 // HandleFun HandleFun 定义一个处理连接的函数

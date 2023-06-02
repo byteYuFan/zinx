@@ -33,6 +33,11 @@ type GlobalObj struct {
 	MaxConn int
 	// MaxPackageSize 当前zinx框架数据包的最大值
 	MaxPackageSize uint32
+
+	// WorkerPoolSize 工作池数量
+	WorkerPoolSize uint32
+	// MaxWorkerTaskLen 工作队列的最大数量 现在定条件
+	MaxWorkerTaskLen uint32
 }
 
 // GlobalObject GlobalObject 定义一个全局的对象
@@ -40,7 +45,7 @@ var GlobalObject *GlobalObj
 
 // Reload 加载用户自定义的参数
 func (g *GlobalObj) Reload() {
-	data, err := os.ReadFile("../conf/zinx.json")
+	data, err := os.ReadFile("conf/zinx.json")
 	if err != nil {
 		panic(err)
 	}
@@ -55,13 +60,15 @@ func (g *GlobalObj) Reload() {
 func init() {
 	// 如果配置文件没有加载，就是一个默认的值
 	GlobalObject = &GlobalObj{
-		TcpServer:      nil,
-		Host:           "0.0.0.0",
-		TcpPort:        8999,
-		Name:           "ZinxServerApp",
-		Version:        "V0.4",
-		MaxConn:        1000,
-		MaxPackageSize: 4096,
+		TcpServer:        nil,
+		Host:             "0.0.0.0",
+		TcpPort:          8999,
+		Name:             "ZinxServerApp",
+		Version:          "V0.4",
+		MaxConn:          1000,
+		MaxPackageSize:   4096,
+		WorkerPoolSize:   16,
+		MaxWorkerTaskLen: 1024,
 	}
 	// 尝试从zinx.json读取
 	GlobalObject.Reload()

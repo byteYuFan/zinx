@@ -1,4 +1,5 @@
 {
   "Name": "test-json",
-  "MaxPackageSize": 10
+  "MaxPackageSize": 4096,
+  "MaxConn": 10
 }
